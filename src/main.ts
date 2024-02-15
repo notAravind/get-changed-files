@@ -84,12 +84,7 @@ async function run(): Promise<void> {
 
     // Get the changed files from the response payload.
     const files = response.data.files
-    const all = [] as string[],
-      added = [] as string[],
-      modified = [] as string[],
-      removed = [] as string[],
-      renamed = [] as string[],
-      addedModified = [] as string[]
+    const all = [] as string[]
     for (const file of files) {
       const filename = file.filename
       // If we're using the 'space-delimited' format and any of the filenames have a space in them,
@@ -101,35 +96,10 @@ async function run(): Promise<void> {
         )
       }
       all.push(filename)
-      switch (file.status as FileStatus) {
-        case 'added':
-          added.push(filename)
-          addedModified.push(filename)
-          break
-        case 'modified':
-          modified.push(filename)
-          addedModified.push(filename)
-          break
-        case 'removed':
-          removed.push(filename)
-          break
-        case 'renamed':
-          renamed.push(filename)
-          break
-        default:
-          core.setFailed(
-            `One of your files includes an unsupported file status '${file.status}', expected 'added', 'modified', 'removed', or 'renamed'.`
-          )
-      }
     }
 
     // Format the arrays of changed files.
-    let allFormatted: string,
-      addedFormatted: string,
-      modifiedFormatted: string,
-      removedFormatted: string,
-      renamedFormatted: string,
-      addedModifiedFormatted: string
+    let allFormatted: string
     switch (format) {
       case 'space-delimited':
         // If any of the filenames have a space in them, then fail the step.
@@ -140,48 +110,21 @@ async function run(): Promise<void> {
             )
         }
         allFormatted = all.join(' ')
-        addedFormatted = added.join(' ')
-        modifiedFormatted = modified.join(' ')
-        removedFormatted = removed.join(' ')
-        renamedFormatted = renamed.join(' ')
-        addedModifiedFormatted = addedModified.join(' ')
         break
       case 'csv':
         allFormatted = all.join(',')
-        addedFormatted = added.join(',')
-        modifiedFormatted = modified.join(',')
-        removedFormatted = removed.join(',')
-        renamedFormatted = renamed.join(',')
-        addedModifiedFormatted = addedModified.join(',')
         break
       case 'json':
         allFormatted = JSON.stringify(all)
-        addedFormatted = JSON.stringify(added)
-        modifiedFormatted = JSON.stringify(modified)
-        removedFormatted = JSON.stringify(removed)
-        renamedFormatted = JSON.stringify(renamed)
-        addedModifiedFormatted = JSON.stringify(addedModified)
         break
     }
 
     // Log the output values.
     core.info(`All: ${allFormatted}`)
-    core.info(`Added: ${addedFormatted}`)
-    core.info(`Modified: ${modifiedFormatted}`)
-    core.info(`Removed: ${removedFormatted}`)
-    core.info(`Renamed: ${renamedFormatted}`)
-    core.info(`Added or modified: ${addedModifiedFormatted}`)
+
+    core.exportVariable('allFiles', allFormatted)
 
     // Set step output context.
-    core.setOutput('all', allFormatted)
-    core.setOutput('added', addedFormatted)
-    core.setOutput('modified', modifiedFormatted)
-    core.setOutput('removed', removedFormatted)
-    core.setOutput('renamed', renamedFormatted)
-    core.setOutput('added_modified', addedModifiedFormatted)
-
-    // For backwards-compatibility
-    core.setOutput('deleted', removedFormatted)
   } catch (error) {
     core.setFailed(error.message)
   }
