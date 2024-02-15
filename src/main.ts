@@ -122,10 +122,10 @@ async function run(): Promise<void> {
     // Log the output values.
     core.info(`All: ${allFormatted}`)
 
-    core.exportVariable('allFiles', allFormatted)
-
+    core.setOutput('allFiles', allFormatted)
     // Set step output context.
   } catch (error) {
+    // @ts-ignore
     core.setFailed(error.message)
   }
 }
